@@ -1,7 +1,17 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
+*.py[cod]
+*.pyo
+*.pyd
 *$py.class
+
+# Local generated content / runtime downloads
+downloads/
+downloades/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # C extensions
 *.so
@@ -11,7 +21,6 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
 lib/
