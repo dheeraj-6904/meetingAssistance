@@ -3,9 +3,12 @@ import shutil
 import sys
 from typing import Any
 
+from dotenv import load_dotenv
 import ffmpeg
 import yt_dlp
 from yt_dlp.utils import DownloadError
+
+load_dotenv()
 
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
@@ -26,25 +29,23 @@ def is_youtube_block_error(message: str) -> bool:
 
 
 def resolve_ffmpeg_bin_dir() -> str | None:
+    """
+    Resolves the directory containing the FFmpeg binaries dynamically.
+
+    Resolution order:
+    1. Environment variable `FFMPEG_LOCATION` (can be a directory or binary path).
+    2. System PATH via shutil.which('ffmpeg').
+    """
     env_path = os.getenv("FFMPEG_LOCATION")
-    candidates = []
     if env_path:
-        candidates.append(env_path)
-    candidates.extend([
-        r"C:\Users\dheer\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0.1-full_build\bin",
-        r"C:\ffmpeg\bin",
-        r"C:\Program Files\ffmpeg\bin",
-        r"C:\Program Files\Git\usr\bin",
-    ])
+        if os.path.isfile(env_path):
+            return os.path.dirname(os.path.abspath(env_path))
+        if os.path.isdir(env_path):
+            return os.path.abspath(env_path)
 
-    for candidate in candidates:
-        ffmpeg_path = os.path.join(candidate, "ffmpeg.exe" if os.name == "nt" else "ffmpeg")
-        ffprobe_path = os.path.join(candidate, "ffprobe.exe" if os.name == "nt" else "ffprobe")
-        if os.path.exists(ffmpeg_path) and os.path.exists(ffprobe_path):
-            return candidate
-
-    if shutil.which("ffmpeg") and shutil.which("ffprobe"):
-        return os.path.dirname(shutil.which("ffmpeg"))
+    ffmpeg_exe = shutil.which("ffmpeg")
+    if ffmpeg_exe:
+        return os.path.dirname(os.path.abspath(ffmpeg_exe))
 
     return None
 
@@ -153,13 +154,12 @@ def convert_to_wav(input_path: str, output_path: str | None = None) -> str:
         base_name, _ = os.path.splitext(input_path)
         output_path = f"{base_name}_16k_mono.wav"
 
-    ffmpeg_path = shutil.which("ffmpeg")
     ffmpeg_dir = resolve_ffmpeg_bin_dir()
-    if ffmpeg_dir:
-        ffmpeg_path = os.path.join(ffmpeg_dir, "ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+    binary_name = "ffmpeg.exe" if os.name == "nt" else "ffmpeg"
+    ffmpeg_path = os.path.join(ffmpeg_dir, binary_name) if ffmpeg_dir else shutil.which("ffmpeg")
 
-    if ffmpeg_path is None:
-        raise RuntimeError("ffmpeg not found. Install FFmpeg and make sure ffmpeg/ffprobe are on PATH.")
+    if not ffmpeg_path or not os.path.exists(ffmpeg_path):
+        raise RuntimeError("ffmpeg not found. Install FFmpeg and make sure ffmpeg/ffprobe are on PATH or set FFMPEG_LOCATION.")
 
     (
         ffmpeg

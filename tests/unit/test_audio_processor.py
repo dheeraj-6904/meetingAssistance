@@ -7,6 +7,7 @@ from utils.AudioProcessor import (
     chunk_audio,
     is_youtube_block_error,
     process_input,
+    resolve_ffmpeg_bin_dir,
 )
 
 
@@ -78,3 +79,29 @@ class TestProcessInput:
         assert Result["source"] == "youtube"
         assert Result["error_code"] == "blocked_by_youtube_auth"
         assert "Please upload" in Result["suggestion"]
+
+
+class TestResolveFfmpegBinDir:
+    def testReturnsEnvPathIfDirectory(self, monkeypatch, tmp_path):
+        bin_dir = tmp_path / "custom_bin"
+        bin_dir.mkdir()
+        monkeypatch.setenv("FFMPEG_LOCATION", str(bin_dir))
+        assert resolve_ffmpeg_bin_dir() == str(bin_dir)
+
+    def testReturnsEnvPathDirIfFile(self, monkeypatch, tmp_path):
+        bin_file = tmp_path / "ffmpeg.exe"
+        bin_file.write_text("")
+        monkeypatch.setenv("FFMPEG_LOCATION", str(bin_file))
+        assert resolve_ffmpeg_bin_dir() == str(tmp_path)
+
+    def testReturnsPathFromShutilWhich(self, monkeypatch):
+        monkeypatch.delenv("FFMPEG_LOCATION", raising=False)
+        fake_ffmpeg = os.path.abspath(os.path.join("dummy", "bin", "ffmpeg"))
+        monkeypatch.setattr("shutil.which", lambda cmd: fake_ffmpeg if cmd == "ffmpeg" else None)
+        assert resolve_ffmpeg_bin_dir() == os.path.dirname(fake_ffmpeg)
+
+    def testReturnsNoneWhenNotFound(self, monkeypatch):
+        monkeypatch.delenv("FFMPEG_LOCATION", raising=False)
+        monkeypatch.setattr("shutil.which", lambda cmd: None)
+        assert resolve_ffmpeg_bin_dir() is None
+

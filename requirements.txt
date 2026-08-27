@@ -5,8 +5,9 @@
 yt-dlp>=2024.4.9                  # Download audio from YouTube URLs
 ffmpeg-python>=0.2.0              # FFmpeg bindings (FFmpeg binary must be installed separately)
 
-# ── Speech-to-Text (local Whisper) ────────────────────────────────────────────
+# ── Speech-to-Text (Whisper & Sarvam AI) ──────────────────────────────────────
 openai-whisper>=20231117          # OpenAI Whisper (runs locally)
+sarvamai>=0.1.31                  # Sarvam AI STT SDK (Hindi/Indic speech-to-text)
 torch>=2.2.0                      # PyTorch backend for Whisper
 torchaudio>=2.2.0                 # Audio utilities for PyTorch
 
