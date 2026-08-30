@@ -10,6 +10,8 @@ from yt_dlp.utils import DownloadError
 
 load_dotenv()
 
+print("FFMPEG_LOCATION =", os.getenv("FFMPEG_LOCATION"))
+
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
@@ -196,6 +198,8 @@ def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list[str]:
             1 if total_duration_seconds % seconds_per_chunk > 0 else 0
         )
 
+        print(num_chunks)
+
         for i in range(num_chunks):
             start_second = i * seconds_per_chunk
             end_second = min((i + 1) * seconds_per_chunk, total_duration_seconds)
@@ -214,6 +218,9 @@ def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list[str]:
             chunk_paths.append(chunk_path)
 
     return chunk_paths
+
+
+# print(download_youtube_audio("https://www.youtube.com/watch?v=gy45i8_-VfY"))
 
 
 if __name__ == "__main__":

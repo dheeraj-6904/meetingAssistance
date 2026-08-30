@@ -1,5 +1,18 @@
+import os
 import sys
 from dotenv import load_dotenv
+
+load_dotenv()
+
+ffmpeg_dir = os.getenv("FFMPEG_LOCATION")
+
+if ffmpeg_dir and os.path.isdir(ffmpeg_dir):
+    os.environ["PATH"] = (
+        ffmpeg_dir
+        + os.pathsep
+        + os.environ["PATH"]
+    )
+
 from utils.AudioProcessor import process_input, chunk_audio
 from core.transcriber import transcribe_all
 
@@ -8,7 +21,7 @@ if sys.stdout.encoding.lower() != 'utf-8':
 
 load_dotenv()
 
-source = "https://youtu.be/O4GorB4N2Kg?si=WGACDZqf20VRcLRX"
+source = "https://www.youtube.com/watch?v=BqlMwyABHOE"
 
 result = process_input(source)
 
@@ -18,6 +31,7 @@ if result["ok"]:
     
     # Choose language: "english" (Whisper) or "hindi" / "hinglish" (Sarvam AI)
     language = "hinglish"
+    # language = "english"
     transcript = transcribe_all(chunks, language=language)
     print("\n--- FINAL TRANSCRIPTION ---")
     print(transcript)
