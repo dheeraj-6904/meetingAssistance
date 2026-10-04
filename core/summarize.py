@@ -3,11 +3,12 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from core.mistral_rate_limit import invoke_with_rate_limit
 
 import os
 
 def get_llm():
-    return ChatMistralAI(model = "mistral-small-latest", mistral_api_key = os.getenv("MISTRAL_API_KEY"),temperature=0.3)
+    return ChatMistralAI(model = "voxtral-small-2507", mistral_api_key = os.getenv("MISTRAL_API_KEY"),temperature=0.3)
 
 def split_transcript(transcript: str) -> list:
     splitter = RecursiveCharacterTextSplitter(
@@ -31,7 +32,9 @@ def summarize(transcript : str) -> str:
 
     chunks = split_transcript(transcript)
 
-    chunk_summaries = [map_chain.invoke({"text" : chunk}) for chunk in chunks]
+    chunk_summaries = [
+        invoke_with_rate_limit(map_chain, {"text": chunk}) for chunk in chunks
+    ]
 
     combined = "\n\n".join(chunk_summaries)
 
@@ -54,7 +57,7 @@ def summarize(transcript : str) -> str:
         | StrOutputParser()
     )
 
-    return combined_chain.invoke(combined)
+    return invoke_with_rate_limit(combined_chain, combined)
 
 def generate_title(transcipt : str) -> str:
     llm = get_llm()
@@ -73,4 +76,4 @@ def generate_title(transcipt : str) -> str:
         |StrOutputParser()
     )
 
-    return title_chain.invoke(transcipt[:2000])
+    return invoke_with_rate_limit(title_chain, transcipt[:2000])
