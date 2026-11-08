@@ -4,7 +4,7 @@ from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from core.vector_store import build_vector_store, load_vector_store, get_retriever
+from core.vector_store import build_vector_store, load_vector_store, get_retriever, close_vector_store
 
 
 def get_llm():

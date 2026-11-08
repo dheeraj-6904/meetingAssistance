@@ -7,6 +7,7 @@ from langchain_core.documents import Document
 CHROMA_DIR = "vector_db"
 COLLECTION_NAME = "meeting_transcript"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+_active_vector_store: Chroma | None = None
 
 # from transcript give embedding
 def get_embeddings():
@@ -16,6 +17,7 @@ def get_embeddings():
     )
 
 def build_vector_store(transcript : str)->Chroma:
+    global _active_vector_store
     print("Building vector store")
 
     splitter = RecursiveCharacterTextSplitter(
@@ -41,10 +43,12 @@ def build_vector_store(transcript : str)->Chroma:
         persist_directory=CHROMA_DIR
     )
 
+    _active_vector_store = vector_store
     return vector_store
 
 # loading vector store
 def load_vector_store() ->Chroma:
+    global _active_vector_store
     embeddings = get_embeddings()
     vector_store = Chroma(
         collection_name=COLLECTION_NAME,
@@ -52,7 +56,15 @@ def load_vector_store() ->Chroma:
         persist_directory=CHROMA_DIR
     )
 
+    _active_vector_store = vector_store
     return vector_store
+
+
+def close_vector_store() -> None:
+    global _active_vector_store
+    if _active_vector_store is not None:
+        _active_vector_store._client.close()
+        _active_vector_store = None
 
 # retriving things out of the vector store (top k algo)
 def get_retriever(vector_store: Chroma, k :int = 4):

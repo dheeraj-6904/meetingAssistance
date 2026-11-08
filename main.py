@@ -1,4 +1,6 @@
 import os
+import gc
+import shutil
 import sys
 from dotenv import load_dotenv
 
@@ -18,7 +20,7 @@ from utils.AudioProcessor import process_input, chunk_audio
 from core.transcriber import transcribe_all
 from core.summarize import summarize, generate_title
 from core.extractor import extract_action_items, extract_key_decisions, extract_questions
-from core.rag_engine import build_rag_chain, ask_question
+from core.rag_engine import build_rag_chain, ask_question, close_vector_store
 
 
 def run_pipeline(source: str, language: str = "english") -> dict:
@@ -58,6 +60,18 @@ def run_pipeline(source: str, language: str = "english") -> dict:
     }
 
 
+def clear_directory_contents(directory: str) -> None:
+    if not os.path.isdir(directory):
+        return
+
+    for entry in os.listdir(directory):
+        path = os.path.join(directory, entry)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+
 if __name__ == "__main__":
     # CLI entry point
     source = input("Enter YouTube URL or local file path: ").strip()
@@ -81,6 +95,12 @@ if __name__ == "__main__":
         question = input("You: ").strip()
         if question.lower() in ["exit", "quit", "q"]:
             print("👋 Goodbye!")
+            result["rag_chain"] = None
+            del rag_chain
+            gc.collect()
+            close_vector_store()
+            clear_directory_contents("vector_db")
+            clear_directory_contents("downloads")
             break
         if not question:
             continue
