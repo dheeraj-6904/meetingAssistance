@@ -23,7 +23,7 @@ if sys.stdout.encoding.lower() != 'utf-8':
 
 load_dotenv()
 
-source = "https://youtu.be/syFZfO_wfMQ?si=SkXVO04snHDnNXv7"
+source = "https://www.youtube.com/watch?v=bh79MXVZsds"
 
 result = process_input(source)
 
